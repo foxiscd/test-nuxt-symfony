@@ -1,5 +1,11 @@
-import { mande } from 'mande';
+import { mande } from 'mande'
+import { apiServer } from '~/config/apiServer.js'
 
-const api = mande('http://test.server/api/v1');
+const api = mande(apiServer.getDomain(), {
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  credentials: 'include',
+})
 
-export default api;
+export default api

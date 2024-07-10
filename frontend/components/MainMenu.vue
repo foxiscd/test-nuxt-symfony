@@ -17,7 +17,7 @@ const menuItems = [
     to: `/`
   }, {
     label: 'Seen',
-    to: `/articles/?viewed=true`,
+    to: `/articles?viewed=true`,
   }, {
     label: 'Authors',
     to: `/authors`,

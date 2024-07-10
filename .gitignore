@@ -9,6 +9,7 @@
 /frontend/.nuxt/
 /frontend/nitro/
 /frontend/.cache/
+/frontend/package-lock.json/
 dist
 
 # Node dependencies

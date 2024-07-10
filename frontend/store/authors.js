@@ -1,24 +1,20 @@
+import api from '~/api/client.js'
+
 export const useAuthors = defineStore('authors', {
   state: () => ({
-    list: [
-      {
-        'id': 1,
-        'name': 'Leanne Graham',
-        'username': 'Bret',
-        'email': 'Sincere@april.biz',
-      }, {
-        'id': 2,
-        'name': 'Ervin Howell',
-        'username': 'Antonette',
-        'email': 'Shanna@melissa.tv',
-      }, {
-        'id': 3,
-        'name': 'Clementine Bauch',
-        'username': 'Samantha',
-        'email': 'Nathan@yesenia.net',
-      },
-    ],
+    list: [],
   }),
+  actions: {
+    async fetch () {
+      if (!this.list.length) {
+        const res = await api.get('/api/v1/authors').
+          catch(err => {
+            console.log(err)
+          })
+
+        this.list = res.data
+      }
+    },
+  },
   getters: {},
-  actions: {},
 })

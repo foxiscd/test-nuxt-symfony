@@ -1,5 +1,7 @@
 <template>
-  <div class="footer">
+  <div class="footer container">
+    <div>Grigorii Aleksandrov</div>
+    <div>foxiscd@mail.ru</div>
   </div>
 </template>
 

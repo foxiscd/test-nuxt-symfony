@@ -954,3 +954,4 @@
 2024/07/05 08:38:05 [notice] 1#1: start worker process 43
 2024/07/05 08:38:05 [notice] 1#1: start worker process 44
 2024/07/05 08:38:05 [notice] 1#1: start worker process 45
+2024/07/08 21:12:08 [error] 30#30: *609 upstream timed out (110: Connection timed out) while reading response header from upstream, client: 192.168.65.1, server: test.server, request: "GET /api/v1/articles/ HTTP/1.1", upstream: "fastcgi://172.26.0.2:9000", host: "test.server"
