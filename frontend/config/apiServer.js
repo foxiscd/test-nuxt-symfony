@@ -1,5 +1,5 @@
 export const apiServer = {
-  host: 'http://test.server',
+  host: 'http://localhost',
   port: 80,
 
   getDomain: function() {
