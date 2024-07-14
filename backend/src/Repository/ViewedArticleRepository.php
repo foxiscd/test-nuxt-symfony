@@ -16,11 +16,11 @@ class ViewedArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, ViewedArticle::class);
     }
 
-    public function saveViewedArticle(int $articleId, int $userId): void
+    public function saveViewedArticle(int $articleId, User $user): void
     {
         $viewedArticle = new ViewedArticle();
         $viewedArticle->setArticleId($articleId);
-        $viewedArticle->setUserId($userId);
+        $viewedArticle->setUser($user);
 
         $entityManager = $this->getEntityManager();
         $entityManager->persist($viewedArticle);

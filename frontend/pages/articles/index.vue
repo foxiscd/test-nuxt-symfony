@@ -17,7 +17,9 @@ const fetchArticles = async () => {
 
   try {
     if (query && 'viewed' in query) {
-      await articlesStore.fetchViewed()
+      if (process.client) {
+        await articlesStore.fetchViewed()
+      }
       return articlesStore.viewed || []
     } else if (query && 'author_id' in query) {
       await articlesStore.fetchAuthorArticles(query['author_id'])

@@ -9,20 +9,18 @@ export const useArticles = defineStore('articles', {
   }),
   actions: {
     async fetchViewed () {
-      if (!this.viewed.length) {
-        const res = await api.get('/api/v1/articles?viewed=1')
+      const res = await api.get('/api/v1/articles?viewed=1')
 
-        if (res.data) {
-          this.viewed = res.data
-        }
+      if (res) {
+        this.viewed = res
       }
     },
     async fetchList () {
       if (!this.list.length) {
         const res = await api.get('/api/v1/articles')
 
-        if (res.data) {
-          this.list = res.data
+        if (res) {
+          this.list = res
         }
       }
     },
@@ -30,8 +28,8 @@ export const useArticles = defineStore('articles', {
       if (this.author[id] === undefined) {
         const res = await api.get(`/api/v1/articles?author_id=${id}`)
 
-        if (res.data) {
-          this.author[id] = res.data
+        if (res) {
+          this.author[id] = res
         }
       }
     },
@@ -39,8 +37,8 @@ export const useArticles = defineStore('articles', {
       if (this.article[id] === undefined) {
         const res = await api.get(`/api/v1/articles/${id}`)
 
-        if (res.data) {
-          this.article[id] = res.data
+        if (res) {
+          this.article[id] = res
         }
       }
     },

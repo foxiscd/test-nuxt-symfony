@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Repository\ViewedArticleRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: ViewedArticleRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -18,15 +17,12 @@ class ViewedArticle
     #[ORM\Column(type: 'integer')]
     private int $article_id;
 
-    #[ORM\Column(type: 'integer')]
-    private int $user_id;
-
-    #[ORM\Column(type: 'datetime')]
-    private \DateTime $created_at;
-
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
     private User $user;
+
+    #[ORM\Column(type: 'datetime')]
+    private \DateTime $created_at;
 
     #[ORM\PrePersist]
     public function setCreatedAtValue()
@@ -39,11 +35,6 @@ class ViewedArticle
         return $this->id;
     }
 
-    public function setId(?int $id): void
-    {
-        $this->id = $id;
-    }
-
     public function getArticleId(): int
     {
         return $this->article_id;
@@ -54,14 +45,14 @@ class ViewedArticle
         $this->article_id = $articleId;
     }
 
-    public function getUserId(): int
+    public function getUser(): User
     {
-        return $this->user_id;
+        return $this->user;
     }
 
-    public function setUserId(int $userId): void
+    public function setUser(User $user): void
     {
-        $this->user_id = $userId;
+        $this->user = $user;
     }
 
     public function getCreatedAt(): \DateTime

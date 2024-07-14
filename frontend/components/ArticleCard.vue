@@ -1,7 +1,7 @@
 <template>
   <div class="article">
     <div class="article__header">
-        {{ article.author.username }}
+      {{ article.author.username }}
       <div class="article__author-email">{{ article.author.email }}</div>
     </div>
     <div class="article__body">
@@ -17,12 +17,17 @@
 
 <script setup>
 import { upperFirst } from 'scule'
+import api from '~/api/client.js'
 
-defineProps({
+const props = defineProps({
   article: {
     type: Object,
     required: true,
   },
+})
+
+onMounted(() => {
+  api.post(`/api/v1/articles/${props.article.id}/view`)
 })
 </script>
 

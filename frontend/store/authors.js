@@ -12,7 +12,7 @@ export const useAuthors = defineStore('authors', {
             console.log(err)
           })
 
-        this.list = res.data
+        this.list = res
       }
     },
   },

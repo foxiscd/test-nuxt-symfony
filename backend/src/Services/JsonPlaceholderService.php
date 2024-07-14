@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\DTO\Article\Filter;
-use App\DTO\CacheResponseData;
 use App\DTO\JsonPlaceholderService\ArticleData;
 use App\DTO\JsonPlaceholderService\ArticleWithAuthor;
 use App\DTO\JsonPlaceholderService\AuthorData;
@@ -24,21 +23,13 @@ class JsonPlaceholderService
 
     /**
      * @param Filter $filter
-     * @return CacheResponseData
+     * @return ArticleData[]
      */
-    public function getArticles(Filter $filter): CacheResponseData
+    public function getArticles(Filter $filter): array
     {
-        $cachePostfix = 'all';
+        $cacheKey = $filter->author_id ?  'articles_{$filter->author_id}' : 'articles_all';
 
-        if ($filter->viewed) {
-            $cachePostfix = 'viewed';
-        } elseif ($filter->author_id) {
-            $cachePostfix = $filter->author_id;
-        }
-
-        $cacheKey = "articles_{$cachePostfix}";
-
-        return $this->makeCacheResponse($cacheKey, function (ItemInterface $item) use ($filter) {
+        $articles = $this->cache->get($cacheKey, function (ItemInterface $item) use ($filter) {
             $item->expiresAfter(120);
 
             $url = 'https://jsonplaceholder.typicode.com/posts';
@@ -46,42 +37,50 @@ class JsonPlaceholderService
 
             $articles = $this->client->request('GET', $url)->toArray();
 
-            $filteredArticles = array_filter($articles, function ($article) use ($filter) {
-                return !isset($filter->article_ids) || in_array($article['id'], $filter->article_ids);
-            });
-
             return array_map(function ($article) {
                 return new ArticleData($article);
-            }, $filteredArticles);
+            }, $articles);
+        });
+
+        return $this->filterArticles($articles ?? [], $filter);
+    }
+
+    /**
+     * @param ArticleData[] $articles
+     * @param Filter $filter
+     * @return array
+     */
+    public function filterArticles(array $articles, Filter $filter): array
+    {
+        return array_filter($articles, function ($article) use ($filter) {
+            if (isset($filter->article_ids)) {
+                return in_array($article->id, $filter->article_ids) ? $article : null;
+            } else {
+                return $article;
+            }
         });
     }
 
     /**
      * @param Filter $filter
-     * @return CacheResponseData
+     * @return ArticleWithAuthor[]
      */
-    public function getArticlesWithAuthor(Filter $filter): CacheResponseData
+    public function getArticlesWithAuthor(Filter $filter): array
     {
-        $cacheKey = 'articlesWithAuthors_' . ($filter->author_id ?? 'all');
-
-        return $this->makeCacheResponse($cacheKey, function (ItemInterface $item) use ($filter) {
-            $item->expiresAfter(120);
-
-            return $this->involveAuthorsIntoArticles(
-                $this->getArticles($filter)->data,
-                $this->getAuthors()->data
-            );
-        });
+        return $this->involveAuthorsIntoArticles(
+            $this->getArticles($filter),
+            $this->getAuthors()
+        );
     }
 
     /**
-     * @return CacheResponseData
+     * @return AuthorData[]
      */
-    public function getAuthors(): CacheResponseData
+    public function getAuthors(): array
     {
         $cacheKey = 'authors_all';
 
-        return $this->makeCacheResponse($cacheKey, function (ItemInterface $item) {
+        return $this->cache->get($cacheKey, function (ItemInterface $item) {
             $item->expiresAfter(300);
 
             $response = $this->client->request('GET', 'https://jsonplaceholder.typicode.com/users');
@@ -92,13 +91,13 @@ class JsonPlaceholderService
 
     /**
      * @param int $authorId
-     * @return CacheResponseData
+     * @return AuthorData
      */
-    public function getAuthor(int $authorId): CacheResponseData
+    public function getAuthor(int $authorId): AuthorData
     {
         $cacheKey = 'author_' . $authorId;
 
-        return $this->makeCacheResponse($cacheKey, function (ItemInterface $item) use ($authorId) {
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($authorId) {
             $item->expiresAfter(300);
 
             $response = $this->client->request('GET', "https://jsonplaceholder.typicode.com/users/$authorId");
@@ -109,19 +108,19 @@ class JsonPlaceholderService
 
     /**
      * @param int $id
-     * @return CacheResponseData
+     * @return ArticleData
      */
-    public function getArticle(int $id): CacheResponseData
+    public function getArticle(int $id): ArticleData
     {
         $cacheKey = 'article_' . $id;
 
-        return $this->makeCacheResponse($cacheKey, function (ItemInterface $item) use ($id) {
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($id) {
             $item->expiresAfter(300);
 
             $response = $this->client->request('GET', "https://jsonplaceholder.typicode.com/posts/$id");
             $article = new ArticleData($response->toArray());
 
-            return $article->joinAuthor($this->getAuthor($article->authorId)->data);
+            return $article->joinAuthor($this->getAuthor($article->authorId));
         });
     }
 
@@ -143,33 +142,5 @@ class JsonPlaceholderService
         }
 
         return $articlesWithAuthors;
-    }
-
-    /**
-     * @param string $cacheKey
-     * @return string|null
-     */
-    protected function getEtag(string $cacheKey): ?string
-    {
-        $item = $this->cache->getItem($cacheKey);
-
-        if (!$item->isHit()) {
-            return null;
-        }
-
-        return $item->getMetadata()['expiry'] ?? null;
-    }
-
-    /**
-     * @param string $cacheKey
-     * @param callable $callback
-     * @return CacheResponseData
-     */
-    protected function makeCacheResponse(string $cacheKey, callable $callback): CacheResponseData
-    {
-        $data = $this->cache->get($cacheKey, $callback);
-        $expiredAt = $this->getEtag($cacheKey);
-
-        return new CacheResponseData(expiredAt: $expiredAt, data: $data);
     }
 }

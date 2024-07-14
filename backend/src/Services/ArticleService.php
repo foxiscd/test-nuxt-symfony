@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\DTO\Article\Filter;
+use App\DTO\JsonPlaceholderService\ArticleData;
 use App\Repository\UserRepository;
 use App\Repository\ViewedArticleRepository;
-use App\DTO\CacheResponseData;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -24,7 +24,7 @@ class ArticleService
 
 
 
-    public function getArticlesWithAuthor(Filter $filter): CacheResponseData
+    public function getArticlesWithAuthor(Filter $filter): array
     {
         if ($filter->viewed && $filter->userUuid) {
             $articleIds = $this->viewedArticleRepository->getViewedArticleIds($filter->userUuid);
@@ -34,7 +34,7 @@ class ArticleService
         return $this->jsonPlaceholderService->getArticlesWithAuthor($filter);
     }
 
-    public function getArticle(int $id): CacheResponseData
+    public function getArticle(int $id): ArticleData
     {
         return $this->jsonPlaceholderService->getArticle($id);
     }
@@ -44,8 +44,8 @@ class ArticleService
         $this->entityManager->beginTransaction();
 
         try {
-            $user = $this->userRepository->findOneByUuidOrCreate(Uuid::fromBase32($userUuid));
-            $this->viewedArticleRepository->saveViewedArticle($articleId, $user->getId());
+            $user = $this->userRepository->findOneByUuidOrCreate(Uuid::fromString($userUuid));
+            $this->viewedArticleRepository->saveViewedArticle($articleId, $user);
             $this->entityManager->commit();
 
             return true;
